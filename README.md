@@ -8,4 +8,4 @@ This CLI tool will look for lines with trailing comments, and if they are near o
 
 ![A photo example that shows a before and after of comments misaligned, then aligned by column.](example.png "Example")
 
-You can see a real example with `before.lua` and `after.lua` in root directory of this project.
+You can see a real example with `before.lua` and `after.lua` in the root directory of this project as well.
