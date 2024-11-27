@@ -7,3 +7,5 @@ This CLI tool will look for lines with trailing comments, and if they are near o
 (Writing a code example here does not show the difference very well since Markdown can be rendered in different ways.)
 
 ![A photo example that shows a before and after of comments misaligned, then aligned by column.](example.png "Example")
+
+You can see a real example with `before.lua` and `after.lua` in root directory of this project.
