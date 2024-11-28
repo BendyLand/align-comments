@@ -11,6 +11,16 @@ fn main() {
             println!("Error: Cannot find '{}'", path);
             exit(1);
         }
+        let flag = check_cl_args(args.clone());
+        let mut depth = 1;
+        match flag {
+            Flag::Depth(d) => {
+                if d < file.lines().collect::<Vec<&str>>().len() { 
+                    depth = d; 
+                }
+            },
+            Flag::None => (),
+        }
         let file_type = detect_file_type(&path);
         let style = determine_style(file_type);
         let token = get_token(style);
@@ -18,7 +28,7 @@ fn main() {
             println!("Error: {}", token); 
             exit(1);                      
         }                                 
-        fix_comments(&mut file, token);   
+        fix_comments(&mut file, token, depth);  
         let res = fs::write(path.as_str(), file);
         match res {
             Err(e) => println!("Error: {}", e),
@@ -51,17 +61,17 @@ fn style_to_string(style: Style) -> String {
 
 impl fmt::Display for Style {
     fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), std::fmt::Error> {
-        write!(f, "{}", style_to_string(*self))
+        return write!(f, "{}", style_to_string(*self));
     }
 }
 
 fn get_token(file_type: Style) -> String {
     let token: String;
     match file_type {
-        Style::C => token = "//".to_string(),
+        Style::C =>      token = "//".to_string(),
         Style::Python => token = "#".to_string(),
-        Style::Lua => token = "--".to_string(),
-        _ => token = "Unsupported file type".to_string(),
+        Style::Lua =>    token = "--".to_string(),
+        _ =>             token = "Unsupported file type".to_string(),
     }
     return token;
 }
@@ -79,15 +89,15 @@ fn detect_file_type(path: &String) -> String {
 fn determine_style(ext: String) -> Style {
     let result: Style;
     match ext.as_str() {
-        ".lua" => result = Style::Lua,
-        ".py" | ".rb" | ".sh" => result = Style::Python,
-        ".c" | ".cc" | ".cpp" => result = Style::C,
-        ".js" | ".ts" => result = Style::C, 
-        ".rs" => result = Style::C, 
-        ".fs" | "fsi" | "cs" => result = Style::C, 
-        ".swift" => result = Style::C, 
+        ".lua" =>                             result = Style::Lua,
+        ".py" | ".rb" | ".sh" =>              result = Style::Python,
+        ".c" | ".cc" | ".cpp" =>              result = Style::C,
+        ".js" | ".ts" =>                      result = Style::C, 
+        ".rs" =>                              result = Style::C, 
+        ".fs" | "fsi" | "cs" =>               result = Style::C, 
+        ".swift" =>                           result = Style::C, 
         ".scala" | ".sc" | ".kt" | ".java" => result = Style::C, 
-        _ => result = Style::Unknown,
+        _ =>                                  result = Style::Unknown,
     }
     return result;
 }
@@ -102,17 +112,17 @@ where T: Clone {
         if idx < self.len() {
             return Some(self[idx].clone());
         }
-        None
+        return None;
     }
 }
 
-fn group_into_sections(comment_lines: Vec<usize>) -> Vec<Vec<usize>> {
+fn group_into_sections(comment_lines: Vec<usize>, depth: usize) -> Vec<Vec<usize>> {
     let mut result: Vec<Vec<usize>> = Vec::<Vec::<usize>>::new();
     let mut temp = Vec::<usize>::new();
     for (i, current) in comment_lines.iter().enumerate() {
         if i < comment_lines.len()-1 {
             let next = comment_lines.at(i+1).unwrap();
-            if next - current > 1 {
+            if next - current > depth {
                 temp.push(current.clone());
                 result.push(temp.clone());
                 temp.clear();
@@ -125,7 +135,7 @@ fn group_into_sections(comment_lines: Vec<usize>) -> Vec<Vec<usize>> {
     return result;
 }
 
-fn fix_comments(file: &mut String, token: String) {
+fn fix_comments(file: &mut String, token: String, depth: usize) {
     let lines: Vec<String> = file.lines().map(|x| x.to_string()).collect();
     let mut comment_lines = Vec::<usize>::new();
     for (i, line) in lines.iter().enumerate() {
@@ -139,7 +149,7 @@ fn fix_comments(file: &mut String, token: String) {
         }
     }
     comment_lines.dedup();
-    let grouped_sections = group_into_sections(comment_lines);
+    let grouped_sections = group_into_sections(comment_lines, depth);
     for section in grouped_sections {
         fix_section(section, file, &token);
     }
@@ -160,4 +170,27 @@ fn fix_section(section: Vec<usize>, file: &mut String, token: &String) {
         if diff > 0 { for _ in 0..diff { lines[i].insert(idx, ' '); } }
     }
     *file = lines.join("\n");
+}
+
+enum Flag {
+    Depth(usize),
+    None,
+}
+
+fn check_cl_args(args: Vec<String>) -> Flag {
+    let result: Flag;
+    if args.contains(&"-d".to_string()) {
+        let idx = args.iter().position(|x| x == &"-d".to_string()).unwrap();
+        let num_str = args[idx+1].clone();
+        let num = num_str.parse::<usize>().unwrap_or(1);
+        result = Flag::Depth(num);
+    }
+    else if args.contains(&"--depth".to_string()) {
+        let idx = args.iter().position(|x| x == &"--depth".to_string()).unwrap();
+        let num_str = args[idx+1].clone();
+        let num = num_str.parse::<usize>().unwrap_or(1);
+        result = Flag::Depth(num);
+    }
+    else { result = Flag::None; }
+    return result;
 }

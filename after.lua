@@ -7,7 +7,7 @@
 Full_build = {
     compiler = "g++",                            -- The compiler to be used (e.g., "gcc", "clang")
     files = {"main.cpp", "utils.cpp"},           -- A list of source files to compile (e.g., "main.cpp", "utils.cpp")
-    include_dirs = {"this", "that"},             -- Directories for include files
+    include_dirs = {"this", "that"},             -- Directories for include files 
     preproc_opts = {},                           -- Preprocessor options (e.g., macros, include paths)
     linker_opts = {"m"},                         -- Linker options (e.g., "m" for the math lib)
     output = "main",                             -- Output file name (optional, defaults to a.out)
@@ -23,15 +23,15 @@ Full_build = {
     env_vars = {},                               -- e.g., {CC = "gcc", CXX = "g++"}
     src_dir = "src",                             -- Source directory
     out_dir = "build",                           -- Output directory
-    hooks = {post_build = "./run.sh"},           -- e.g., {pre_build = "scripts/pre_build.sh"}
+    hooks = {post_build = "./run.sh"},           -- e.g., {pre_build = "scripts/pre_build.sh"} 
     custom_flags = {},                           -- e.g., {"-fno-stack-protector"}
     tests = {},                                  -- e.g., {"test_suite1", "test_suite2"}
     documentation = "",                          -- Directory or command for generating docs
     project_metadata = {                         -- Optional: project name, version, author
         name = "",
         version = "",
-        author = "",
-    }
+        author = "",                             
+    }                                            
 }
 
 -- Customize behavior below!
