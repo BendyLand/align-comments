@@ -6,15 +6,19 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     if args.len() > 1 {
         let path = args[1].to_string();
-        let mut file = fs::read_to_string(path.as_str()).unwrap();
+        let mut file = fs::read_to_string(path.as_str()).unwrap_or("NOFILE".to_string());
+        if file == "NOFILE".to_string() {
+            println!("Error: Cannot find '{}'", path);
+            exit(1);
+        }
         let file_type = detect_file_type(&path);
         let style = determine_style(file_type);
         let token = get_token(style);
         if token.len() > 2 {
-            println!("Error: {}", token);
-            exit(1);
-        }
-        fix_comments(&mut file, token);
+            println!("Error: {}", token); 
+            exit(1);                      
+        }                                 
+        fix_comments(&mut file, token);   
         let res = fs::write(path.as_str(), file);
         match res {
             Err(e) => println!("Error: {}", e),
@@ -37,9 +41,9 @@ enum Style {
 fn style_to_string(style: Style) -> String {
     let result: String;
     match style {
-        Style::C => result = "c".to_string(),
-        Style::Python => result = "python".to_string(),
-        Style::Lua => result = "lua".to_string(),
+        Style::C =>       result = "c".to_string(),
+        Style::Python =>  result = "python".to_string(),
+        Style::Lua =>     result = "lua".to_string(),
         Style::Unknown => result = "unknown".to_string(),
     }
     return result;
